@@ -29,10 +29,11 @@
     }
     #overlay.visible { transform:translateX(0); }
 
-    /* === Einheitliche Buttons (Liste, Karte, Info) === */
+    /* === Einheitliche Buttons (Liste, Karte, Info, Route) === */
     #poiListBtn,
     #mapBtn button,
-    #infoBtn {
+    #infoBtn,
+    #routeBtn {
       height: 40px;
       font-size: 22px;
       background: #993355;
@@ -43,17 +44,25 @@
       cursor: pointer;
       transition: background 0.2s ease, transform 0.2s ease;
     }
-    #mapBtn button, #infoBtn {width: 40px;}
+    #mapBtn button, #infoBtn, #routeBtn {width: 40px;}
     #poiListBtn:hover,
     #mapBtn button:hover,
-    #infoBtn:hover {
+    #infoBtn:hover,
+    #routeBtn:hover {
       background: #aa4466;
+    }
+
+    /* visuelle Hervorhebung, wenn Route aktiv ist */
+    #routeBtn.active {
+      box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(0,0,0,0.4);
     }
 
     /* Positionierung der Buttons */
     #poiListBtn { position:absolute; top:16px; right:16px; z-index:1100; padding:0 14px; font-size:16px; }
-    #mapBtn { position:absolute; top:60px; right:16px; z-index:1100; }
-    #infoBtnWrap { position:absolute; top:104px; right:16px; z-index:1100; }
+    #mapBtn { position:absolute; top:104px; right:16px; z-index:1100; }
+    #infoBtnWrap { position:absolute; top:60px; right:16px; z-index:1100; }
+    /* Route-Button unter Info */
+    #routeBtnWrap { position:absolute; top:148px; right:16px; z-index:1100; }
 
     #mapBtn img {
       width: 24px; height: 24px; transition: transform 0.3s ease;
@@ -80,69 +89,100 @@
 
     /* Tooltip-Stil */
     .tooltip-container { position:relative; display:inline-block; }
-  .tooltip-container::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: 50%;
-  right: 50px;                          /* Tooltip rechtsbündig an Container */
-  transform: translateY(5px);
-  background: rgba(60, 60, 60, 0.9);
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 14px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
+    .tooltip-container::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: 50%;
+      right: 50px;
+      transform: translateY(5px);
+      background: rgba(60, 60, 60, 0.9);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
 
-.tooltip-container:hover::after,
-.tooltip-container:hover::before {
-  opacity: 1;
-}
-
+    .tooltip-container:hover::after,
+    .tooltip-container:hover::before {
+      opacity: 1;
+    }
 
     /* Info-Overlay */
     #infoOverlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
-      display: none; align-items: center; justify-content: center;
-      z-index: 9999; backdrop-filter: blur(4px);
-      touch-action: none; 
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+      touch-action: auto;  /* Scrollen erlaubt */
     }
+
     .info-content {
       background: rgba(255, 255, 255, 0.92);
-      border-radius: 16px; max-width: 500px; width: 90%;
-      overflow-y: auto;
-      padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      position: relative; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      position: relative;
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      max-height: 90vh;       /* begrenzt Höhe */
+      overflow-y: auto;       /* scrollbarer Inhalt */
       touch-action: pan-y;
     }
+
+    /* Scroll-Indikator (Fade unten) */
+    .info-content::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 32px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95));
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.25s ease;
+    }
+    .info-content.at-bottom::after {
+      opacity: 0;  /* kein Fade mehr, wenn unten angekommen */
+    }
+
     .info-content h2 { color: #993355; margin-top: 0; font-size: 20px; }
+
     #closeInfo {
       position: fixed; top: 12px; left: 12px; background: rgba(0,0,0,0.4); border: none;
       font-size: 28px; color: #993355; cursor: pointer; border-radius:50%;
       width: 36px; height: 36px; font-size: 26px; cursor:pointer; z-index:10000;
     }
+
     /* === Responsive Anpassung für Smartphone === */
-@media (max-width: 600px) {
-  .info-content {
-    width: 92%;          /* nutzt fast ganze Bildschirmbreite */
-    max-width: none;     /* entfernt die 500px-Grenze */
-    padding: 18px;       /* etwas weniger Innenabstand */
-    font-size: 15px;     /* leicht kleinere Schrift */
-  }
+    @media (max-width: 600px) {
+      .info-content {
+        width: 92%;
+        max-width: none;
+        padding: 18px;
+        font-size: 15px;
+      }
 
-  .info-content h2 {
-    font-size: 18px;     /* Überschrift etwas kleiner */
-  }
+      .info-content h2 {
+        font-size: 18px;
+      }
 
-  #closeInfo {
-    top: 4px;
-    right: 8px;
-    font-size: 24px;     /* Schließen-Symbol proportional */
-  }
-}
+      #closeInfo {
+        top: 4px;
+        right: 8px;
+        font-size: 24px;
+      }
+    }
+
     #emklogo {display:block; width:40%; height:auto; right:0px; margin: 0 0 16px auto;}
   </style>
 </head>
@@ -161,14 +201,22 @@
 
   <!-- 🛈 Info-Button -->
   <div id="infoBtnWrap" class="tooltip-container" data-tooltip="Informationen anzeigen">
- <button id="infoBtn" aria-label="Informationen anzeigen" type="button">
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" fill="none" stroke="white" stroke-width="2"/>
-    <line x1="12" y1="10" x2="12" y2="16" stroke="white" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="12" cy="7" r="1.5" fill="white"/>
-  </svg>
-</button>
+    <button id="infoBtn" aria-label="Informationen anzeigen" type="button">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="white" stroke-width="2"/>
+        <line x1="12" y1="10" x2="12" y2="16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="7" r="1.5" fill="white"/>
+      </svg>
+    </button>
+  </div>
 
+  <!-- 🚶‍♂️ Route-Button -->
+  <div id="routeBtnWrap" class="tooltip-container" data-tooltip="Route ein-/ausblenden">
+    <button id="routeBtn" aria-label="Route ein- oder ausblenden" type="button">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <polyline points="3,18 8,8 14,14 21,5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   </div>
 
   <!-- 📄 Info-Overlay -->
@@ -191,8 +239,8 @@
         <ul>
           <li>Mit dem <img src="data/images/World1.png" alt="Karten-Icon" style="height:18px; vertical-align:middle; margin:-2px 4px 0 2px;">-Button wechseln Sie zwischen Kartenstilen.</li>
           <li>Mit dem ☰-Button können Sie die Liste der Krippen-Stationen ein- oder ausblenden.</li>
+          <li>Diese Infoseite können Sie nach unten scrollen.</li>
         </ul>
-               
       </p>
     </div>
   </div>
@@ -233,7 +281,7 @@
     const KML_NS = 'http://www.opengis.net/kml/2.2';
     const byTag = (p,t)=>Array.from(p.getElementsByTagNameNS(KML_NS,t));
     const txt = e => e ? e.textContent.trim() : '';
-    const resolveHref = href => /^https?:/i.test(href) ? href : ('data/' + href.replace(/^\.?\/*/,''));
+    const resolveHref = href => /^https?:/i.test(href) ? href : ('data/' + href.replace(/^\.?\/*/,''));    
 
     const iconCache = new Map();
     function iconFor(url){
@@ -311,7 +359,7 @@
       })
       .catch(err => {
         console.error('KML-Fehler:', err);
-        alert('KML konnte nicht geladen/geparst werden. Prüfe Pfad: data/doc.kml');
+        alert('KML konnte nicht geladen/geparst werden. Prüfe Pfad: data/krippenweg.kml');
       });
 
     // === Kartenstil wechseln ===
@@ -337,10 +385,82 @@
     const infoBtn = document.getElementById('infoBtn');
     const infoOverlay = document.getElementById('infoOverlay');
     const closeInfo = document.getElementById('closeInfo');
-    infoBtn.addEventListener('click', () => { infoOverlay.style.display = 'flex'; });
-    closeInfo.addEventListener('click', () => { infoOverlay.style.display = 'none'; });
+    const infoContent = document.querySelector('.info-content');
+
+    function updateInfoScrollState() {
+      if (!infoContent) return;
+      const atBottom = infoContent.scrollTop + infoContent.clientHeight >= infoContent.scrollHeight - 2;
+      if (atBottom || infoContent.scrollHeight <= infoContent.clientHeight + 2) {
+        infoContent.classList.add('at-bottom');
+      } else {
+        infoContent.classList.remove('at-bottom');
+      }
+    }
+
+    infoBtn.addEventListener('click', () => {
+      infoOverlay.style.display = 'flex';
+      // nach Öffnen Scrollstatus aktualisieren
+      requestAnimationFrame(updateInfoScrollState);
+    });
+
+    closeInfo.addEventListener('click', () => {
+      infoOverlay.style.display = 'none';
+    });
+
     infoOverlay.addEventListener('click', (e) => {
       if (e.target === infoOverlay) infoOverlay.style.display = 'none';
+    });
+
+    if (infoContent) {
+      infoContent.addEventListener('scroll', updateInfoScrollState);
+      window.addEventListener('resize', updateInfoScrollState);
+    }
+
+    // === Route-Toggle (data/route.json) ===
+    const routeBtn = document.getElementById('routeBtn');
+    let routeLayer = null;
+    let routeVisible = false;
+
+    routeBtn.addEventListener('click', () => {
+      // Erstes Mal: Route laden
+      if (!routeLayer) {
+        fetch('data/route.json')
+          .then(r => r.json())
+          .then(json => {
+            // json ist: [ [ [lat,lng], [lat,lng], ... ] ]
+            const rawCoords = Array.isArray(json) ? json[0] : [];
+            const coords = rawCoords.map(p => [p[0], p[1]]); // [lat, lng]
+
+            routeLayer = L.polyline(coords, {
+              color: '#993355',   // gleiche dunkelrote Farbe wie Buttons
+              weight: 5,
+              opacity: 0.9
+            }).addTo(map);
+
+            routeVisible = true;
+            routeBtn.classList.add('active');
+
+            // Optional: Karte auf die Route zoomen
+            if (coords.length > 1) {
+              map.fitBounds(routeLayer.getBounds().pad(0.1));
+            }
+          })
+          .catch(err => {
+            console.error('Route-Fehler:', err);
+            alert('Route konnte nicht geladen werden. Prüfe data/route.json.');
+          });
+      } else {
+        // Bereits geladen: nur ein-/ausblenden
+        if (routeVisible) {
+          map.removeLayer(routeLayer);
+          routeVisible = false;
+          routeBtn.classList.remove('active');
+        } else {
+          routeLayer.addTo(map);
+          routeVisible = true;
+          routeBtn.classList.add('active');
+        }
+      }
     });
   </script>
 </body>
